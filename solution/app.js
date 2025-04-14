@@ -6,34 +6,14 @@ if (!localStorage.getItem("favs")) {
 
 const courseDivNode = document.getElementById("course-list");
 
-let allCourses;
-
 fetch("https://cs272.cs.wisc.edu/rest/s25/ice/courses")
 .then(res => res.json())
 .then(courses => {
-    allCourses = courses;
     courses
         .map(c => createCourseComponent(c))
         .forEach(n => courseDivNode.appendChild(n));
-    highlightFavorites();
 });
 
-function highlightFavorites() {
-    let favorites = JSON.parse(localStorage.getItem("favs"));
-
-    if (!allCourses) {
-        alert("Courses are still loading...");
-    } else {
-        allCourses.forEach(course => {
-            const starNode = document.getElementById(`course-${course.id}-star`);
-            if (favorites.includes(course.id)) {
-                starNode.className = "bi-star-fill";
-            } else {
-                starNode.className = "bi-star";
-            }
-        })
-    }
-}
 
 /**
  * Given some course data, returns a new HTML element.
@@ -51,18 +31,26 @@ function createCourseComponent(courseData) {
     const newStarNode = document.createElement("span");
     newStarNode.id = `course-${courseData.id}-star`;
     newStarNode.style.float = "right";
-    newStarNode.className = "bi-star";
+
+    let ogFavs = JSON.parse(localStorage.getItem("favs"));
+    if (ogFavs.includes(courseData.id)) {
+        newStarNode.className = "bi-star-fill";
+    } else {
+        newStarNode.className = "bi-star";
+    }
+    
     newStarNode.addEventListener("click", () => {
         let favorites = JSON.parse(localStorage.getItem("favs"));
     
         if (favorites.includes(courseData.id)) {
             favorites = favorites.filter(f => f !== courseData.id);
+            newStarNode.className = "bi-star";
         } else {
             favorites.push(courseData.id);
+            newStarNode.className = "bi-star-fill";
         }
         
         localStorage.setItem("favs", JSON.stringify(favorites));
-        highlightFavorites();
     })
 
     const newTitleNode = document.createElement("h2");
